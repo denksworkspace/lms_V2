@@ -9,7 +9,7 @@ from vanilla import GenericModelView, TemplateView
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Prefetch, Q
-from django.http import HttpResponseBadRequest, HttpResponseRedirect
+from django.http import HttpResponseBadRequest, HttpResponseRedirect, QueryDict
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
@@ -97,6 +97,9 @@ class TimetableView(PermissionRequiredMixin, WeekEventsView):
             yield TimetableEvent.create(c, time_zone=user.time_zone)
 
 
+STUDENT_ASSIGNMENT_FILTERS_SESSION_KEY = "student_assignment_filters"
+
+
 class StudentAssignmentListView(PermissionRequiredMixin, TemplateView):
     """Shows assignments for the current term."""
     template_name = "lms/study/assignment_list.html"
@@ -146,15 +149,47 @@ class StudentAssignmentListView(PermissionRequiredMixin, TemplateView):
         }
         return context
 
+    def _save_filters(self, request, *, course, formats, statuses):
+        filters_empty = course is None and not formats and not statuses
+        if filters_empty:
+            request.session.pop(STUDENT_ASSIGNMENT_FILTERS_SESSION_KEY, None)
+            return
+        request.session[STUDENT_ASSIGNMENT_FILTERS_SESSION_KEY] = {
+            "course": None if course is None else str(course),
+            "format": list(formats),
+            "status": list(statuses),
+        }
+
+    def _build_querydict_from_session(self, request):
+        saved_filters = request.session.get(STUDENT_ASSIGNMENT_FILTERS_SESSION_KEY)
+        if not saved_filters:
+            return None
+        saved_query = QueryDict('', mutable=True)
+        course = saved_filters.get("course")
+        if course:
+            saved_query.setlist("course", [course])
+        for key in ("format", "status"):
+            values = saved_filters.get(key) or []
+            if values:
+                saved_query.setlist(key, values)
+        return saved_query if saved_query else None
+
     def get(self, request, *args, **kwargs):
         current_term = Semester.get_current()
         enrolled_in = get_current_semester_active_courses(request.user, current_term)
-        filter_form = StudentAssignmentListFilter(enrolled_in, data=request.GET)
+        query_data = request.GET
+        if not request.GET:
+            saved_query = self._build_querydict_from_session(request)
+            if saved_query:
+                query_data = saved_query
+        filter_form = StudentAssignmentListFilter(enrolled_in, data=query_data)
         filter_formats, filter_statuses, filter_course = [], [], None
         if filter_form.is_valid():
             filter_formats = filter_form.cleaned_data["format"]
             filter_statuses = filter_form.cleaned_data["status"]
             filter_course = filter_form.cleaned_data["course"]
+            self._save_filters(request, course=filter_course,
+                               formats=filter_formats, statuses=filter_statuses)
         context = self.get_context_data(filter_form=filter_form,
                                         enrolled_in_courses=enrolled_in,
                                         current_term=current_term,
@@ -174,6 +209,8 @@ class StudentAssignmentListView(PermissionRequiredMixin, TemplateView):
             filter_course = filter_form.cleaned_data["course"]
             filter_formats = filter_form.cleaned_data["format"]
             filter_statuses = filter_form.cleaned_data["status"]
+            self._save_filters(request, course=filter_course,
+                               formats=filter_formats, statuses=filter_statuses)
             url = reverse('study:assignment_list')
             params = parse.urlencode({
                 'course': [] if filter_course is None else filter_course,

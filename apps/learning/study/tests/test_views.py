@@ -32,6 +32,7 @@ from learning.tests.jba.test_jba_submission_service import (
     HELLO_WORLD_TASK_ID,
     TEST_JBA_ACCOUNT,
 )
+from learning.study.views import STUDENT_ASSIGNMENT_FILTERS_SESSION_KEY
 from users.models import StudentTypes, StudentProfile
 from users.services import update_student_status
 from users.tests.factories import (
@@ -782,6 +783,13 @@ def test_view_student_assignment_list_assignment_status_filtering(client):
     assert f"status={AssignmentStatus.NEED_FIXES}" in response.redirect_chain[-1][0]
     assert f"status={AssignmentStatus.COMPLETED}" in response.redirect_chain[-1][0]
 
+    # forbidden status AssignmentStatus.NEW for filter
+    form_data["status"].append(AssignmentStatus.NEW)
+    response = client.post(url, form_data, follow=True)
+    assert response.status_code == 200
+    open_assignments = response.context['assignment_list_open']
+    assert set(open_assignments) == {sa1_c1, sa2_c1, sa3_c1, sa1_c2, sa3_c2}
+
 
 @pytest.mark.django_db
 def test_view_student_assignment_list_assignment_format_filtering(client):
@@ -938,12 +946,78 @@ def test_view_student_assignment_list_filtering(client):
     assert f"status={AssignmentStatus.NEED_FIXES}" in response.redirect_chain[-1][0]
     assert f"status={AssignmentStatus.COMPLETED}" in response.redirect_chain[-1][0]
 
-    # forbidden status AssignmentStatus.NEW for filter
-    form_data["status"].append(AssignmentStatus.NEW)
+
+@pytest.mark.django_db
+def test_student_assignment_list_filters_persist_in_session(client):
+    semester = SemesterFactory.create_current()
+    course_one, course_two = CourseFactory.create_batch(2, semester=semester)
+    student = StudentFactory()
+    EnrollmentFactory(course=course_one, student=student)
+    EnrollmentFactory(course=course_two, student=student)
+    a1 = AssignmentFactory(course=course_one, submission_type=AssignmentFormat.ONLINE)
+    a2 = AssignmentFactory(course=course_two, submission_type=AssignmentFormat.NO_SUBMIT)
+    sa1 = StudentAssignment.objects.get(student=student, assignment=a1)
+    sa2 = StudentAssignment.objects.get(student=student, assignment=a2)
+    sa1.status = AssignmentStatus.NOT_SUBMITTED
+    sa2.status = AssignmentStatus.COMPLETED
+    sa1.save()
+    sa2.save()
+    url = reverse('study:assignment_list')
+    client.login(student)
+
+    form_data = {
+        "course": course_one.pk,
+        "format": [AssignmentFormat.ONLINE],
+        "status": [AssignmentStatus.NOT_SUBMITTED],
+    }
     response = client.post(url, form_data, follow=True)
     assert response.status_code == 200
+    saved_filters = client.session[STUDENT_ASSIGNMENT_FILTERS_SESSION_KEY]
+    assert saved_filters["course"] == str(course_one.pk)
+    assert saved_filters["format"] == [AssignmentFormat.ONLINE]
+    assert saved_filters["status"] == [AssignmentStatus.NOT_SUBMITTED]
+
+    response = client.get(url)
+    assert response.status_code == 200
     open_assignments = response.context['assignment_list_open']
-    assert set(open_assignments) == {sa1_c1, sa2_c1, sa3_c1, sa1_c2, sa3_c2}
+    assert set(open_assignments) == {sa1}
+    filter_form = response.context['filter_form']
+    assert filter_form['course'].value() == str(course_one.pk)
+    assert filter_form['format'].value() == [AssignmentFormat.ONLINE]
+    assert filter_form['status'].value() == [AssignmentStatus.NOT_SUBMITTED]
+
+
+@pytest.mark.django_db
+def test_student_assignment_list_filters_cleared_when_empty(client):
+    semester = SemesterFactory.create_current()
+    course_one = CourseFactory(semester=semester)
+    student = StudentFactory()
+    EnrollmentFactory(course=course_one, student=student)
+    assignment = AssignmentFactory(course=course_one, submission_type=AssignmentFormat.ONLINE)
+    client.login(student)
+    url = reverse('study:assignment_list')
+
+    response = client.post(url, {
+        "course": course_one.pk,
+        "format": [AssignmentFormat.ONLINE],
+        "status": [AssignmentStatus.NOT_SUBMITTED],
+    }, follow=True)
+    assert response.status_code == 200
+    assert STUDENT_ASSIGNMENT_FILTERS_SESSION_KEY in client.session
+
+    response = client.post(url, {
+        "course": '',
+        "format": [],
+        "status": [],
+    }, follow=True)
+    assert response.status_code == 200
+    assert STUDENT_ASSIGNMENT_FILTERS_SESSION_KEY not in client.session
+    response = client.get(url)
+    assert response.status_code == 200
+    filter_form = response.context['filter_form']
+    assert filter_form['course'].value() in (None, '')
+    assert filter_form['format'].value() == []
+    assert filter_form['status'].value() == []
 
 
 @pytest.mark.django_db
