@@ -1,11 +1,12 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
-<form action="{{ comment.get_update_url }}" method="POST">
-<div class="modal-body">
+<form action="{{ comment.get_update_url }}" method="POST" class="assignment-comment-edit-form">
+  {% csrf_token %}
+  <div class="modal-body">
     {% crispy form form.helper %}
-</div>
-<div class="modal-footer">
-    <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Close" %}</button>
-    <button type="submit" class="btn btn-primary">Update</button>
-</div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-link js-cancel-edit">{% trans "Cancel" %}</button>
+    <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+  </div>
 </form>
