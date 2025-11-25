@@ -788,7 +788,7 @@ def test_view_student_assignment_list_assignment_status_filtering(client):
     response = client.post(url, form_data, follow=True)
     assert response.status_code == 200
     open_assignments = response.context['assignment_list_open']
-    assert set(open_assignments) == {sa1_c1, sa2_c1, sa3_c1, sa1_c2, sa3_c2}
+    assert set(open_assignments) == {sa1_c1, sa2_c1, sa3_c1, sa4_c1, sa_c2}
 
 
 @pytest.mark.django_db
