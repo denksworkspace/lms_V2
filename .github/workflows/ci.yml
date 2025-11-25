@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    env:
+      PIPENV_VENV_IN_PROJECT: "1"
+      PIPENV_NOSPIN: "1"
+      PIPENV_HIDE_EMOJIS: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+      DJANGO_SETTINGS_MODULE: "lms.settings.test"
+      USE_CLOUD_STORAGE: "false"
+      DJANGO_PUBLIC_MEDIA_ROOT: "/tmp/django_public_media"
+      DJANGO_PRIVATE_MEDIA_ROOT: "/tmp/django_private_media"
+      DJANGO_SECRET_KEY: "ci-secret-key"
+      DJANGO_DB_SECRET_KEY: "ci-db-secret-key"
+      DJANGO_ALLOWED_HOSTS: "localhost,example.com"
+      SITE_ID: "1"
+      REDIS_DB_INDEX: "1"
+      REDIS_HOST: "127.0.0.1"
+      REDIS_PORT: "6379"
+      REDIS_SSL: "false"
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
+      SENTRY_DSN: "https://example.com/0"
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:6-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libpq-dev libjpeg-dev zlib1g-dev libmagic1 libmagic-dev
+
+      - name: Cache pip downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/Pipfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Pipenv
+        run: python -m pip install --upgrade pip pipenv
+
+      - name: Install Python dependencies
+        run: pipenv sync --dev
+
+      - name: Prepare media directories
+        run: |
+          mkdir -p /tmp/django_public_media
+          mkdir -p /tmp/django_private_media
+
+      - name: Run tests
+        run: pipenv run pytest
