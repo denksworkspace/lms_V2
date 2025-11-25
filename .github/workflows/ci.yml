@@ -29,6 +29,12 @@ jobs:
       WEBPACK_ASSETS_ROOT: "${{ github.workspace }}/assets"
       DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
       SENTRY_DSN: "https://example.com/0"
+      DJANGO_EMAIL_ADDRESS: "noreply@example.com"
+      AWS_SES_ACCESS_KEY_ID: "dummy"
+      AWS_SES_SECRET_ACCESS_KEY: "dummy"
+      HASHIDS_SALT: "dummy-salt"
+      SUBMISSION_SERVICE_TOKEN: "dummy-token"
+      ADMIN_NOTIFICATIONS_EMAILS: "admin@example.com"
     services:
       postgres:
         image: postgres:15
