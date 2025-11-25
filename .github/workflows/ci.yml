@@ -26,6 +26,7 @@ jobs:
       REDIS_HOST: "127.0.0.1"
       REDIS_PORT: "6379"
       REDIS_SSL: "false"
+      WEBPACK_ASSETS_ROOT: "${{ github.workspace }}/assets"
       DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
       SENTRY_DSN: "https://example.com/0"
     services:
