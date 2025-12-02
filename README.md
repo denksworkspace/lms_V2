@@ -64,6 +64,10 @@ ENV_FILE=.env python manage.py runserver localhost:8001
 Run tests using pytest. 
 If you want to run tests from some specific folders, append the folder names to the command: `pytest apps/core`
 
+### CI/CD
+
+Every push and pull request to `main` triggers the `CI` GitHub Actions workflow defined in `.github/workflows/ci.yml`. The workflow provisions Python 3.10, installs Pipenv-managed dependencies, spins up PostgreSQL and Redis services, and runs `pipenv run pytest` against the `lms.settings.test` configuration. Use the same command locally to reproduce CI failures before pushing.
+
 ### Testing the JetBrains Academy integration locally
 
 1. Run https://code.jetbrains.team/p/edu/repositories/educational-server locally
