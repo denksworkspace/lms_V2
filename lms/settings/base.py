@@ -9,14 +9,19 @@ import environ
 import django
 
 env = environ.Env()
+ROOT_DIR = Path(__file__).resolve().parents[2]
+default_env_path = ROOT_DIR / ".env"
+env_file = env.str("ENV_FILE", default=None)
+if env_file is None and default_env_path.exists():
+    env_file = str(default_env_path)
+
 # Try to read .env file, if it's not present, assume that application
 # is deployed to production and skip reading the file
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
-    environ.Env.read_env(env_file=env.str("ENV_FILE", default=None))
+    environ.Env.read_env(env_file=env_file)
 
 
-ROOT_DIR = Path(__file__).parents[2]
 ROOT_URLCONF = 'lms.urls'
 SHARED_APPS_DIR = ROOT_DIR / "apps"
 

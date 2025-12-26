@@ -13,13 +13,14 @@ RUN npm run ${WEBPACK_ENVIRONMENT}:1
 
 FROM python:3.10-slim-bookworm AS builder
 
+WORKDIR /tmp/
+
 # Python requirements
-COPY Pipfile* /tmp/
+COPY pyproject.toml poetry.lock /tmp/
 RUN pip install --upgrade pip \
-    && pip install --no-cache-dir pipenv==2022.11.11 \
-    && cd /tmp/ \
-    && pipenv --python /usr/local/bin/python requirements > /tmp/requirements-prod.txt \
-    && pipenv --python /usr/local/bin/python requirements --dev-only > /tmp/requirements-dev.txt
+    && pip install --no-cache-dir poetry==1.8.5 \
+    && poetry export -f requirements.txt --output /tmp/requirements-prod.txt --without-hashes \
+    && poetry export -f requirements.txt --with dev --output /tmp/requirements-dev.txt --without-hashes
 
 FROM python:3.10-slim-bookworm
 LABEL maintainer="webmaster@compscicenter.ru"
@@ -121,4 +122,3 @@ USER ${APP_USER}
 COPY docker-files/uwsgi.ini /etc/uwsgi.ini
 
 CMD ["/bin/bash", "-c", "python ./manage.py migrate && uwsgi --ini /etc/uwsgi.ini --show-config --static-map /static=/var/www/static"]
-

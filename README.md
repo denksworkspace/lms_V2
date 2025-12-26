@@ -20,8 +20,7 @@ It is expected that `frontend/assets/v1/dist` folder will contain the output art
 The LMS uses Python 3.10, and there are dependencies that won't work with the newer Python versions out of the box. 
 If your local system Python version is different, you can install Python 3.10 using [pyenv](https://realpython.com/intro-to-pyenv/) tool. 
 
-Having installed Python, you need to create a virtual environment with `pipenv`. Install pipenv using `pip install pipenv`
-and run `pipenv install -d` to install the dependencies, along with the dev packages (it installs django debug toolbar). Activate the virtual environment with `pipenv shell`.
+Install [Poetry](https://python-poetry.org/) (for example `pip install poetry==1.8.5`) and run `poetry install --with dev` from the repository root to create and populate the virtualenv. Activate the virtual environment with `poetry shell` or prefix commands with `poetry run`.
 
 ### Create and edit a local copy of the environment config
 Copy the environment config: `cp lms/settings/.env.example .env`
@@ -36,7 +35,7 @@ SITE_ID=1
 
 ### Prepare static files for serving
 ```
-ENV_FILE=.env python manage.py collectstatic --noinput --ignore "webpack-stats-v*.json"
+ENV_FILE=.env poetry run python manage.py collectstatic --noinput --ignore "webpack-stats-v*.json"
 ```
 
 ### Initialize the database 
@@ -51,22 +50,22 @@ Start Redis in Docker container:
 docker run -d -p 127.0.0.1:6379:6379 --name lms-redis redis:6-alpine redis-server --appendonly yes
 ```
 
-and apply migrations, that essentially create and initialize the database: `ENV_FILE=.env python ./manage.py migrate`
+and apply migrations, that essentially create and initialize the database: `ENV_FILE=.env poetry run python manage.py migrate`
 
 ### Run the backend in development mode
 
 ```
-ENV_FILE=.env python manage.py runserver localhost:8001
+ENV_FILE=.env poetry run python manage.py runserver localhost:8001
 ```
 
 ### Run tests
 
-Run tests using pytest. 
-If you want to run tests from some specific folders, append the folder names to the command: `pytest apps/core`
+Run tests using pytest: `poetry run pytest`. 
+If you want to run tests from some specific folders, append the folder names to the command: `poetry run pytest apps/core`
 
 ### CI/CD
 
-Every push and pull request to `main` triggers the `CI` GitHub Actions workflow defined in `.github/workflows/ci.yml`. The workflow provisions Python 3.10, installs Pipenv-managed dependencies, spins up PostgreSQL and Redis services, and runs `pipenv run pytest` against the `lms.settings.test` configuration. Use the same command locally to reproduce CI failures before pushing.
+Every push and pull request to `main` triggers the `CI` GitHub Actions workflow defined in `.github/workflows/ci.yml`. The workflow provisions Python 3.10, installs Poetry-managed dependencies, spins up PostgreSQL and Redis services, and runs `poetry run pytest` against the `lms.settings.test` configuration. Use the same command locally to reproduce CI failures before pushing.
 
 ### Testing the JetBrains Academy integration locally
 

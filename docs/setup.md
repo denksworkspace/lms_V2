@@ -31,12 +31,16 @@ ALTER USER csc with CREATEDB;
 GRANT ALL privileges ON DATABASE cscdb TO csc;
 ```
 
-* Create virtualenv for the project, activate it and install all python dependencies with pipenv (see Pipenv.lock in the root dir)
+* Install dependencies with Poetry (see `pyproject.toml` / `poetry.lock` in the root dir):
+```bash
+poetry install --with dev
+```
+Activate the environment with `poetry shell` or use `poetry run` for commands.
 
 * Run migrations
 ```bash
 # Or simply generate an empty database
-$ python manage.py migrate --settings=lms.settings.extended
+$ poetry run python manage.py migrate --settings=lms.settings.extended
 ```
 
 * Create `.env` file and place it under `lms/settings/` directory. The easiest way is to copy and rename `.env.example` which could be find in the target directory.
