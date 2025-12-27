@@ -1,4 +1,4 @@
-import 'bootstrap-sass';
+import './bootstrap5-compat';
 import $ from 'jquery';
 import 'jgrowl/jquery.jgrowl.js';
 import 'bootstrap-select/js/bootstrap-select';
@@ -114,7 +114,7 @@ function initUberEditors() {
     CSC.config.uberEditors.push(editor);
   });
   if ($ubereditors.length > 0) {
-    $('a[data-toggle="tab"]').on('shown.bs.tab', UberEditor.reflowOnTabToggle);
+    $('a[data-bs-toggle="tab"]').on('shown.bs.tab', UberEditor.reflowOnTabToggle);
   }
 }
 

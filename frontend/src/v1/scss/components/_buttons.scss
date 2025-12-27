@@ -29,6 +29,7 @@
   &:focus,
   &:active,
   &.active,
+  .dropdown.show > .dropdown-toggle.btn-outline.btn-default,
   .open > .dropdown-toggle.btn-outline.btn-default {
     border-color: #e4eaec;
     background-color: rgba(118, 131, 143, 0.1);
@@ -38,6 +39,7 @@
   &:focus .badge,
   &:active .badge,
   &.active .badge,
+  .dropdown.show > .dropdown-toggle.btn-outline.btn-default .badge,
   .open > .dropdown-toggle.btn-outline.btn-default .badge {
     color: #76838f;
     background-color: #76838f;
@@ -52,6 +54,7 @@
   &:focus,
   &:active,
   &.active,
+  .dropdown.show > .dropdown-toggle.btn-outline.btn-primary,
   .open > .dropdown-toggle.btn-outline.btn-primary {
     border-color: darken($color-blue, 7%);
     background-color: darken($color-blue, 5%);
@@ -61,6 +64,7 @@
   &:focus .badge,
   &:active .badge,
   &.active .badge,
+  .dropdown.show > .dropdown-toggle.btn-outline.btn-primary .badge,
   .open > .dropdown-toggle.btn-outline.btn-primary .badge {
     color: #57c7d4;
     background-color: #ffffff;

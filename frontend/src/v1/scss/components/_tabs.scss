@@ -59,6 +59,15 @@
 
   // material design tabs
 .nav-tabs {
+  > li > a {
+    text-decoration: none;
+
+    &:hover,
+    &:focus {
+      text-decoration: none;
+    }
+  }
+
   &.material {
     border-bottom: 1px solid $color-gray-90;
 

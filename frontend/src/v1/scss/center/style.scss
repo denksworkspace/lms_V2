@@ -43,6 +43,32 @@
 @import "pages/student_submission_comments";
 @import "pages/teachers_list";
 
+a {
+  color: $link-color;
+  text-decoration: none;
+  transition: color .2s ease;
+
+  &:hover,
+  &:focus {
+    color: $link-hover-color;
+    text-decoration: underline;
+  }
+
+  &.text-decoration-none {
+    text-decoration: none;
+  }
+}
+
+.btn,
+a.btn {
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    text-decoration: none;
+  }
+}
+
 
 .help-block {
   margin-bottom: 0;

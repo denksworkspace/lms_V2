@@ -8,6 +8,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Dict, NamedTuple, Optional
 
 from django.db.models import Count
+from django.utils.functional import lazy
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import gettext_noop
 
@@ -21,6 +22,18 @@ logger = logging.getLogger(__name__)
 
 
 READ_ONLY_COURSE_TAB_ATTRIBUTES = ['type']
+
+
+def _strip_tab_context(value: str) -> str:
+    text = str(value)
+    if "|" in text:
+        prefix, suffix = text.split("|", 1)
+        if prefix.endswith("Tab"):
+            return suffix
+    return text
+
+
+strip_tab_context = lazy(_strip_tab_context, str)
 
 
 class InvalidTabException(Exception):
@@ -118,7 +131,10 @@ class CourseTab:
             tab_dict (dict) - a dictionary of parameters used to build the tab.
         """
         super().__init__()
-        self.name = _(tab_dict.get('name', self.title))
+        default_title = self.title or ""
+        configured_name = tab_dict.get('name')
+        translated = _(configured_name) if configured_name else _(default_title)
+        self.name = strip_tab_context(translated)
         self.is_hidden = tab_dict.get('is_hidden', self.is_hidden)
 
         self.tab_dict = tab_dict

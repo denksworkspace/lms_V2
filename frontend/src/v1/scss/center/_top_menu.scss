@@ -23,8 +23,10 @@
 
     a {
         display: block;
+        text-decoration: none;
 
-        &:hover {
+        &:hover,
+        &:focus {
             text-decoration: none;
         }
     }
@@ -52,6 +54,12 @@
 
         &.__narrow li {
             padding: 0 4px;
+        }
+
+        &:after {
+            content: "";
+            display: block;
+            clear: both;
         }
     }
 
@@ -100,11 +108,14 @@
         li {
             padding: 0 10px;
             // rename with `active`
-            &.active {
-                a {
-                    border-bottom-color: $color-blue;
-                    color: #000;
-                }
+            &:hover > a {
+                color: $color-blue;
+                border-bottom-color: $color-blue;
+            }
+
+            &.active > a {
+                color: #000;
+                border-bottom-color: #19191c;
             }
         }
 
@@ -112,21 +123,21 @@
             color: $color-gray-20;
             line-height: 50px;
             border-bottom: 4px solid transparent;
+            text-decoration: none !important;
+            transition: color .2s ease, border-color .2s ease;
 
             &:hover {
                 color: $color-blue;
+                border-bottom-color: $color-blue;
+                text-decoration: none !important;
 
             }
         }
 
         &.for-students {
             li {
-                &.active {
-                    //background-color: #F2A654!important;
-                    a {
-                        //color: #fff;
-                        border-color: #F6BE80;
-                    }
+                &.active > a {
+                    border-bottom-color: $color-orange;
                 }
 
             }
@@ -134,10 +145,8 @@
 
         &.for-teachers {
             li {
-                &.active {
-                    a {
-                        border-color: #515492;
-                    }
+                &.active > a {
+                    border-bottom-color: $color-blue;
                 }
 
             }
@@ -145,10 +154,8 @@
 
         &.for-staff {
             li {
-                &.active {
-                    a {
-                        border-color: $color-green;
-                    }
+                &.active > a {
+                    border-bottom-color: darken($color-gray-20, 5%);
                 }
 
             }
@@ -180,6 +187,8 @@
         a {
             padding: 5px 24px;
             color: $color-gray-20;
+            line-height: 24px;
+            text-decoration: none !important;
         }
     }
 
@@ -187,7 +196,9 @@
         float: right;
         padding: 0;
 
-        &.open, &:hover {
+        &.open,
+        &.show,
+        &:hover {
             background-color: $header-lvl1-active;
         }
     }
@@ -201,15 +212,35 @@
 
     .dropdown-menu {
         border-radius: 2px;
-    }
+        min-width: 220px;
+        padding: 8px 0;
+        font-size: 0.95rem;
+        line-height: 1.5;
 
+        li {
+            padding: 0;
 
-    .dropdown-header {
-        padding: 6px 24px 4px;
-        cursor: inherit;
+            a {
+                padding: 8px 24px;
+                line-height: 1.5;
+                text-decoration: none !important;
 
-        &:hover {
-            background: inherit;
+                &:hover {
+                    color: $color-blue;
+                    background-color: $background-grey;
+                }
+            }
+            &.dropdown-header {
+                padding: 6px 24px 4px;
+                font-size: 0.85rem;
+                color: $color-gray-48;
+                cursor: default;
+
+                &:hover {
+                    background: transparent;
+                    color: $color-gray-48;
+                }
+            }
         }
     }
 

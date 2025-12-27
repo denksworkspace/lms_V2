@@ -25,7 +25,7 @@ function initTabs() {
       }
       tabList.find('li').removeClass('active').find('a').blur();
       tabList
-        .find('a[data-target="' + target + '"]')
+        .find('a[data-bs-target="' + target + '"], a[data-target="' + target + '"]')
         .tab('show')
         .hover();
     };

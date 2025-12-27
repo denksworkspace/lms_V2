@@ -63,9 +63,9 @@ $font-family-sans-serif: "JetBrains Sans", Inter, system-ui, -apple-system, Blin
 $font-family-monospace: "JetBrains Mono Variable", ui-monospace, Menlo, Monaco, "Cascadia Mono", "Segoe UI Mono", "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace", "Source Code Pro", "Fira Mono", "Droid Sans Mono", "Courier New", monospace;
 $font-family-base: $font-family-sans-serif;
 
-$font-size-base: 16px;
-$font-size-large: ceil(($font-size-base * 1.25));
-$font-size-small: ceil(($font-size-base * .85));
+$font-size-base: 1rem;
+$font-size-large: 1.25rem;
+$font-size-small: 0.85rem;
 
 $link-color: #3D4ACE;
 $link-hover-color: darken($link-color, 15%);

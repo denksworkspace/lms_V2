@@ -1,13 +1,21 @@
+import '../bootstrap5-compat';
 import { showComponentError, getSections } from 'utils';
 
 $(document).ready(function () {
   let sections = getSections();
   if (sections.includes('tooltips')) {
-    let defaultWhiteList = $.fn.tooltip.Constructor.DEFAULTS.whiteList;
-    defaultWhiteList.dl = ['class'];
-    defaultWhiteList.dd = [];
-    defaultWhiteList.dt = [];
-    $('[data-toggle="tooltip"]').tooltip();
+    const tooltipConstructor = window.bootstrap && window.bootstrap.Tooltip;
+    const allowList =
+      (tooltipConstructor && tooltipConstructor.Default && tooltipConstructor.Default.allowList) ||
+      ($.fn.tooltip.Constructor &&
+        $.fn.tooltip.Constructor.DEFAULTS &&
+        $.fn.tooltip.Constructor.DEFAULTS.whiteList);
+    if (allowList) {
+      allowList.dl = ['class'];
+      allowList.dd = [];
+      allowList.dt = [];
+    }
+    $('[data-bs-toggle="tooltip"]').tooltip();
   }
   if (sections.includes('studentAssignment')) {
     import(/* webpackChunkName: "gradebook" */ 'teaching/studentAssignment')
