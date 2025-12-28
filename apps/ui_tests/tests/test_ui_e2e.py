@@ -134,19 +134,15 @@ def _login_via_cookie(page, live_server, user: User):
     session["_auth_user_hash"] = user.get_session_auth_hash()
     session.save()
 
-    parsed = urlparse(live_server.url)
-    domain = parsed.hostname  # "localhost"
-
+    from django.conf import settings
     page.context.add_cookies(
-        [
-            {
-                "name": "sessionid",
-                "value": session.session_key,
-                "domain": domain,
-                "path": "/",
-                "httpOnly": True,
-            }
-        ]
+        [{
+            "name": settings.SESSION_COOKIE_NAME,   # usually "sessionid"
+            "value": session.session_key,
+            "url":  live_server.url,                # scopes to host *and* port
+            "httpOnly": True,
+            # path defaults to "/", SameSite defaults to "Lax"
+        }]
     )
 
 
