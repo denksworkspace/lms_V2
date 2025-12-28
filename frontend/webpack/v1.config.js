@@ -32,11 +32,6 @@ const common = {
     },
   },
 
-  externals: {
-    // Note: EpicEditor is a dead library.
-    EpicEditor: 'EpicEditor',
-  },
-
   resolve: {
     extensions: ['.jsx', '.js', '.tsx', '.ts'],
     modules: [path.join(__srcdir, '/js'), __nodemodulesdir],
@@ -53,6 +48,9 @@ const common = {
         test: /\.(js|css)$/,
         enforce: "pre",
         use: ["source-map-loader"],
+        exclude: [
+          /node_modules\/@rescui\/icons/,
+        ],
       },
       {
         test: /\.(js|jsx)$/,
@@ -62,6 +60,24 @@ const common = {
           },
         ],
         include: path.resolve(__srcdir, 'js'),
+      },
+      {
+        test: /\.css\.js$/,
+        include: /node_modules\/@rescui\/icons/,
+        use: [
+          {
+            loader: path.join(__dirname, 'loaders/strip-sourcemap-loader.js'),
+          },
+        ],
+      },
+      {
+        test: /\.js$/,
+        include: /node_modules\/@rescui\/icons\/lib/,
+        use: [
+          {
+            loader: path.join(__dirname, 'loaders/strip-sourcemap-loader.js'),
+          },
+        ],
       },
       {
         test: /\.tsx?$/,
@@ -92,6 +108,16 @@ const common = {
         use: [
           DEVELOPMENT ? 'style-loader' : MiniCssExtractPlugin.loader,
           'css-loader',
+        ],
+      },
+      {
+        test: /\.css$/,
+        include: /node_modules\/@rescui\/icons\/lib/,
+        enforce: 'pre',
+        use: [
+          {
+            loader: path.join(__dirname, 'loaders/strip-sourcemap-loader.js'),
+          },
         ],
       },
       {

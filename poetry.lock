@@ -1072,21 +1072,6 @@ files = [
 devel = ["colorama", "json-spec", "jsonschema", "pylint", "pytest", "pytest-benchmark", "pytest-cache", "validictory"]
 
 [[package]]
-name = "hoep"
-version = "2.0.2"
-description = "A Python binding for the Hoedown Markdown library."
-optional = false
-python-versions = "*"
-files = []
-develop = false
-
-[package.source]
-type = "git"
-url = "https://github.com/pacahon/Hoep.git"
-reference = "0d4c0507dcb34d1b63a099c8b08656b66394bc37"
-resolved_reference = "0d4c0507dcb34d1b63a099c8b08656b66394bc37"
-
-[[package]]
 name = "icalendar"
 version = "5.0.14"
 description = "iCalendar parser/generator"
@@ -1251,6 +1236,23 @@ files = [
     {file = "jupyterlab_pygments-0.3.0-py3-none-any.whl", hash = "sha256:841a89020971da1d8693f1a99997aefc5dc424bb1b251fd6322462a1b8842780"},
     {file = "jupyterlab_pygments-0.3.0.tar.gz", hash = "sha256:721aca4d9029252b11cfa9d185e5b5af4d54772bb8072f9b7036f4170054d35d"},
 ]
+
+[[package]]
+name = "markdown2"
+version = "2.5.4"
+description = "A fast and complete Python implementation of Markdown"
+optional = false
+python-versions = "<4,>=3.9"
+files = [
+    {file = "markdown2-2.5.4-py3-none-any.whl", hash = "sha256:3c4b2934e677be7fec0e6f2de4410e116681f4ad50ec8e5ba7557be506d3f439"},
+    {file = "markdown2-2.5.4.tar.gz", hash = "sha256:a09873f0b3c23dbfae589b0080587df52ad75bb09a5fa6559147554736676889"},
+]
+
+[package.extras]
+all = ["latex2mathml", "pygments (>=2.7.3)", "wavedrom"]
+code-syntax-highlighting = ["pygments (>=2.7.3)"]
+latex = ["latex2mathml"]
+wavedrom = ["wavedrom"]
 
 [[package]]
 name = "markupsafe"
@@ -2969,4 +2971,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "74d0360a548b11fc79c11af15aea97df6d5882ca39ef0ea45ff6776fabe8004c"
+content-hash = "ad3ccd86d8ce8a04a493c8e52ff3fe291c09ab108f2da6990dfa81d42ae82c05"

@@ -8,7 +8,8 @@ from typing import Any, Dict, Iterable, Iterator, List, Optional
 from urllib.parse import parse_qs, urlparse
 
 import bleach
-import hoep as h
+from bleach.linkifier import Linker
+from markdown2 import Markdown
 import sqids.constants
 from django.conf import settings
 from django.core.cache import InvalidCacheBackendError, caches
@@ -36,18 +37,16 @@ class Empty(enum.Enum):
 
 _empty = Empty.token
 
-# Some details here https://github.com/Anomareh/Hoep
-MARKDOWN_EXTENSIONS = (h.EXT_FENCED_CODE |
-                       h.EXT_AUTOLINK |
-                       h.EXT_STRIKETHROUGH |
-                       h.EXT_TABLES |
-                       h.EXT_QUOTE |
-                       h.EXT_NO_INTRA_EMPHASIS |
-                       h.EXT_SPACE_HEADERS |
-                       h.EXT_MATH |
-                       h.EXT_MATH_EXPLICIT)
-MARKDOWN_RENDER_FLAGS = 0
-markdown = h.Hoep(MARKDOWN_EXTENSIONS, MARKDOWN_RENDER_FLAGS)
+MARKDOWN_EXTRAS = [
+    "fenced-code-blocks",
+    "strike",
+    "tables",
+    "code-friendly",
+    "task_list",
+    "break-on-newline",
+]
+markdown = Markdown(extras=MARKDOWN_EXTRAS)
+markdown_linker = Linker(skip_tags=('pre', 'code'), parse_email=True)
 
 # This is not really about markdown, This is about html tags that will be
 # saved after markdown rendering
@@ -98,9 +97,10 @@ MARKDOWN_ALLOWED_ATTRS = {
 
 def render_markdown(text):
     """Renders markdown, then sanitizes html based on allowed tags"""
-    md_rendered = markdown.render(text)
-    return bleach.clean(md_rendered, tags=MARKDOWN_ALLOWED_TAGS,
-                        attributes=MARKDOWN_ALLOWED_ATTRS)
+    md_rendered = markdown.convert(text)
+    cleaned = bleach.clean(md_rendered, tags=MARKDOWN_ALLOWED_TAGS,
+                           attributes=MARKDOWN_ALLOWED_ATTRS)
+    return markdown_linker.linkify(cleaned)
 
 
 def render_markdown_and_cache(value, fragment_name, expires_in=0, *vary_on):

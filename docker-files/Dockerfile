@@ -33,7 +33,7 @@ RUN groupadd --gid=101 ${APP_USER} && useradd -r --no-log-init --uid=101 --gid $
 # Install packages needed to run your application (not build deps):
 #   libpcre3 -- regular expressions support
 #   postgresql-client -- for running database commands
-#   git -- some app dependencies (like Hoep) are stored on github
+#   git -- some app dependencies are stored on GitHub
 #   gosu -- drop root priviligies in docker-entrypoint.sh
 #   mime-support -- for serving static assets with correct mime types
 # We need to recreate the /usr/share/man/man{1..8} directories first because
