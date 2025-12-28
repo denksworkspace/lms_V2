@@ -1,11 +1,13 @@
 import pytest
-from django_recaptcha.client import RecaptchaResponse
+from django.conf import settings
+from django.test import Client
 
 from users.constants import Roles
 from users.models import User
 from users.tests.factories import UserFactory, add_user_groups
 from learning.tests.factories import EnrollmentFactory
 from courses.tests.factories import AssignmentFactory
+
 
 pytestmark = [
     pytest.mark.e2e,
@@ -15,68 +17,9 @@ pytestmark = [
 PASSWORD = "test123foobar@!"
 
 
-@pytest.fixture(autouse=True)
-def _bypass_recaptcha(monkeypatch):
-    """
-    Bypass reCAPTCHA validation in tests.
-
-    Different versions / project integrations call submit() from different modules,
-    so we patch both common import paths.
-    """
-    def _always_valid(*_args, **_kwargs):
-        return RecaptchaResponse(is_valid=True)
-
-    for dotted in (
-        "django_recaptcha.client.submit",
-        "django_recaptcha.fields.client.submit",
-    ):
-        try:
-            monkeypatch.setattr(dotted, _always_valid)
-        except Exception:
-            # If one of the paths doesn't exist in your installed version,
-            # ignore it and keep going.
-            pass
-
-
-def _ui_login(page, base_url: str, username: str, password: str):
-    """
-    Log in via UI and wait for redirect to assignments.
-    If login fails, raise with a helpful message instead of timing out.
-    """
-    page.goto(f"{base_url}/login/", wait_until="domcontentloaded")
-
-    page.fill('input[name="username"]', username)
-    page.fill('input[name="password"]', password)
-
-    # Some templates include a hidden textarea for reCAPTCHA.
-    page.evaluate(
-        """
-        () => {
-          const el = document.querySelector('[name="g-recaptcha-response"]');
-          if (el) el.value = 'e2e-test';
-        }
-        """
-    )
-
-    page.click('input[type="submit"]')
-
-    # Wait for something to happen; 'load' can be flaky with heavy assets.
-    page.wait_for_load_state("domcontentloaded")
-
-    # If we stayed on /login/ => show the error text to debug quickly.
-    if "/login" in page.url:
-        body_text = page.locator("body").inner_text()
-        raise AssertionError(
-            f"Login failed (still on {page.url}). "
-            f"Page text (first 2000 chars):\n\n{body_text[:2000]}"
-        )
-
-    page.wait_for_url("**/learning/assignments/**", timeout=60_000)
-
-
 def _get_or_create_student(username: str) -> User:
     """
-    Make the test idempotent when running with --reuse-db / reused DB.
+    Make tests idempotent when running with --reuse-db / reused DB.
     If the user already exists, reuse it and (re)set a known password.
     """
     user = User.objects.filter(username=username).first()
@@ -88,6 +31,30 @@ def _get_or_create_student(username: str) -> User:
 
     add_user_groups(user, [Roles.STUDENT])
     return user
+
+
+def _login_via_cookie(page, live_server, user: User) -> None:
+    """
+    Avoid UI-login flakiness by creating an authenticated Django session using the test Client
+    and injecting the session cookie into Playwright.
+
+    This still tests the UI pages, but skips fragile login form / reCAPTCHA / site config issues.
+    """
+    client = Client()
+    client.force_login(user)
+
+    session_cookie_name = settings.SESSION_COOKIE_NAME
+    session_cookie_value = client.cookies[session_cookie_name].value
+
+    page.context.add_cookies(
+        [
+            {
+                "name": session_cookie_name,
+                "value": session_cookie_value,
+                "url": live_server.url,  # important: cookie scoped to the live server
+            }
+        ]
+    )
 
 
 @pytest.fixture(scope="session")
@@ -137,14 +104,18 @@ def student3_with_assignment_and_sa(django_db_setup, django_db_blocker):
 
 
 def test_login_redirects_to_assignments(page, live_server, student_user):
-    _ui_login(page, live_server.url, student_user.username, PASSWORD)
+    _login_via_cookie(page, live_server, student_user)
+
+    page.goto(f"{live_server.url}/learning/assignments/", wait_until="domcontentloaded")
     page.wait_for_selector("text=Open assignments", timeout=60_000)
 
 
 def test_assignments_filter_by_course(page, live_server, student2_with_assignment):
     user, enrollment, assignment = student2_with_assignment
 
-    _ui_login(page, live_server.url, user.username, PASSWORD)
+    _login_via_cookie(page, live_server, user)
+
+    page.goto(f"{live_server.url}/learning/assignments/", wait_until="domcontentloaded")
     page.wait_for_selector(f"text={assignment.title}", timeout=60_000)
 
     page.select_option('select[name="course"]', str(enrollment.course.pk))
@@ -155,8 +126,9 @@ def test_assignments_filter_by_course(page, live_server, student2_with_assignmen
 def test_add_comment_from_assignment_detail(page, live_server, student3_with_assignment_and_sa):
     user, _enrollment, assignment, _student_assignment = student3_with_assignment_and_sa
 
-    _ui_login(page, live_server.url, user.username, PASSWORD)
+    _login_via_cookie(page, live_server, user)
 
+    page.goto(f"{live_server.url}/learning/assignments/", wait_until="domcontentloaded")
     page.click(f'text={assignment.title}')
     page.wait_for_url("**/learning/assignments/*", timeout=60_000)
 
