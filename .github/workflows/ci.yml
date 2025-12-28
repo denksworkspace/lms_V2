@@ -8,7 +8,7 @@ on:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       PYTHONDONTWRITEBYTECODE: "1"
       DJANGO_SETTINGS_MODULE: "lms.settings.test"
