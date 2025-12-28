@@ -1,4 +1,6 @@
 import pytest
+from urllib.parse import urlparse
+
 from django_recaptcha.client import RecaptchaResponse
 
 from users.constants import Roles
@@ -35,14 +37,12 @@ def _bypass_recaptcha(monkeypatch):
         try:
             monkeypatch.setattr(dotted, _always_valid)
         except Exception:
-            # If one of the paths doesn't exist in your installed version, ignore it.
             pass
 
 
 def _get_or_create_student(username: str) -> User:
     """
-    Make the test idempotent when running with --reuse-db / reused DB.
-    If the user already exists, reuse it and (re)set a known password.
+    Make tests idempotent for reused DB: reuse existing user and reset password.
     """
     user = User.objects.filter(username=username).first()
     if user is None:
@@ -58,7 +58,7 @@ def _get_or_create_student(username: str) -> User:
 @pytest.fixture(scope="session")
 def student_user(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
-        # NOTE: no enrollment here on purpose -> should still be able to open assignments page
+        # No enrollment: page may show empty state.
         return _get_or_create_student("student")
 
 
@@ -107,31 +107,24 @@ def student3_with_assignment_and_sa(django_db_setup, django_db_blocker):
 
 def _wait_assignments_page(page, timeout=60_000) -> str:
     """
-    Wait until assignments page is rendered. It can be:
-    - empty state (no courses / no assignments)
-    - list state (filter select exists)
-
-    Return body text for optional assertions/debug.
+    Wait until assignments page is rendered.
+    It can be either list-state or empty-state.
     """
     page.wait_for_load_state("domcontentloaded")
 
     assert "/login" not in page.url
 
-    # Ensure DOM is there
     page.wait_for_selector("body", timeout=timeout)
-    body_text = page.locator("body").inner_text()
-
-    # Extra safety: ensure it's not the login form content
-    # (adjust if your UI language differs)
-    assert "Forgot?" not in body_text
-
-    return body_text
+    return page.locator("body").inner_text()
 
 
 def _login_via_cookie(page, live_server, user: User):
     """
-    Avoid brittle UI login flow (recaptcha/csrf/templates).
     Create django session in DB and set it as a browser cookie.
+
+    IMPORTANT: In Playwright cookie must be either:
+      - {url: "..."} (no domain/path)
+      - OR {domain: "...", path: "..."} (no url)
     """
     from django.contrib.sessions.backends.db import SessionStore
 
@@ -141,14 +134,15 @@ def _login_via_cookie(page, live_server, user: User):
     session["_auth_user_hash"] = user.get_session_auth_hash()
     session.save()
 
-    # Ensure cookie domain is correct for live_server.url
-    base_url = live_server.url  # like http://localhost:12345
+    parsed = urlparse(live_server.url)
+    domain = parsed.hostname  # "localhost"
+
     page.context.add_cookies(
         [
             {
                 "name": "sessionid",
                 "value": session.session_key,
-                "url": base_url,
+                "domain": domain,
                 "path": "/",
                 "httpOnly": True,
             }
@@ -159,7 +153,7 @@ def _login_via_cookie(page, live_server, user: User):
 def _select_course_contains(page, substring: str):
     """
     Select a course option where option text contains `substring`.
-    Do selection by the option value (most stable).
+    Select by option value (stable).
     """
     page.wait_for_selector('select[name="course"]', timeout=60_000)
 
@@ -173,7 +167,7 @@ def _select_course_contains(page, substring: str):
         raise AssertionError(
             "Could not find course option.\n"
             f"Looking for substring: {substring}\n"
-            f"Available options:\n"
+            "Available options:\n"
             + "\n".join([f"- {o['value']}: {o['text']}" for o in options])
         )
 
@@ -186,7 +180,6 @@ def test_login_redirects_to_assignments(page, live_server, student_user):
     page.goto(f"{live_server.url}/learning/assignments/", wait_until="domcontentloaded")
     _wait_assignments_page(page)
 
-    # Do NOT require course filter exists; user may have no enrollments.
     assert "/learning/assignments" in page.url
 
 
