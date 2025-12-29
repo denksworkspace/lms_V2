@@ -36,6 +36,14 @@ def current_user_month(serializer_field):
     return now_local(serializer_field.context['request'].user.time_zone).month
 
 
+@requires_context
+def current_user_iso_year(serializer_field):
+    """Returns ISO week-numbering year in the timezone of the current user"""
+    now_ = now_local(serializer_field.context['request'].user.time_zone)
+    iso_year, _, _ = now_.isocalendar()
+    return iso_year
+
+
 class MonthEventsCalendarView(generic.TemplateView):
     calendar_type = "full"
     template_name = "lms/courses/calendar.html"
@@ -76,7 +84,7 @@ def current_user_iso_week(serializer_field):
 
 class WeekEventsView(generic.TemplateView):
     class InputSerializer(serializers.Serializer):
-        year = serializers.IntegerField(required=False, default=current_user_year,
+        year = serializers.IntegerField(required=False, default=current_user_iso_year,
                                         min_value=settings.ESTABLISHED,
                                         validators=[calendar_max_year])
         # ISO week-numbering year has 52 or 53 full weeks

@@ -1,3 +1,104 @@
+.ubereditor-container {
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
+  position: relative;
+
+  &.ubereditor--fullscreen {
+    position: fixed;
+    inset: 1rem;
+    z-index: 1050;
+    background-color: #fff;
+    box-shadow: var(--bs-box-shadow-lg);
+    height: calc(100vh - 2rem);
+  }
+}
+
+.ubereditor-toolbar {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--bs-border-color);
+  background-color: var(--bs-secondary-bg);
+}
+
+.ubereditor-block-switcher {
+  width: auto;
+  min-width: 10rem;
+}
+
+.ubereditor-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &.is-active {
+    background-color: var(--bs-primary-bg-subtle);
+    color: var(--bs-primary);
+  }
+}
+
+.ubereditor-content {
+  padding: 1rem;
+  min-height: 180px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  background-color: var(--bs-body-bg);
+
+  p {
+    margin-bottom: 0.75rem;
+  }
+
+  pre {
+    padding: 0.75rem;
+    background: var(--bs-tertiary-bg);
+    border-radius: var(--bs-border-radius);
+    font-family: var(--bs-font-monospace);
+  }
+
+  table {
+    @extend .table;
+    @extend .table-bordered;
+    @extend .table-striped;
+    background-color: #fff;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .tiptap,
+  .ProseMirror {
+    min-height: 160px;
+    outline: none;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    font-size: 1rem;
+    line-height: 1.65;
+
+    &:focus {
+      outline: none;
+    }
+  }
+}
+
+.ubereditor-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.75rem;
+  border-top: 1px solid var(--bs-border-color);
+  font-size: 0.85rem;
+  background-color: var(--bs-tertiary-bg);
+  color: var(--bs-secondary-color);
+}
+
 .ubertext {
   overflow: hidden;
 

@@ -78,7 +78,7 @@ const fn = {
     modalFormWrapper.modal({
       show: false,
     });
-    // Show EpicEditor when modal shown
+    // Initialize the editor when modal shown
     modalFormWrapper.on('shown.bs.modal', function (event) {
       const textarea = $(event.target).find('textarea').get(0);
       UberEditor.init(textarea);

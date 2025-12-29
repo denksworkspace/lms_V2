@@ -106,7 +106,7 @@ function renderText() {
 }
 
 function initUberEditors() {
-  // Replace textarea with EpicEditor
+  // Replace textarea with the rich text editor
   const $ubereditors = $('textarea.ubereditor');
   UberEditor.cleanLocalStorage($ubereditors);
   $ubereditors.each(function (i, textarea) {

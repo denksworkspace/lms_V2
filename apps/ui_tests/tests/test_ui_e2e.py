@@ -1,13 +1,19 @@
 import pytest
 from urllib.parse import urlparse
 
+from django.conf import settings
 from django_recaptcha.client import RecaptchaResponse
 
 from users.constants import Roles
 from users.models import User
-from users.tests.factories import UserFactory, add_user_groups
+from users.tests.factories import (
+    UserFactory,
+    StudentFactory,
+    StudentProfileFactory,
+    add_user_groups,
+)
 from learning.tests.factories import EnrollmentFactory
-from courses.tests.factories import AssignmentFactory
+from courses.tests.factories import AssignmentFactory, SemesterFactory
 
 
 pytestmark = [
@@ -39,6 +45,11 @@ def _bypass_recaptcha(monkeypatch):
         except Exception:
             pass
 
+def _create_enrollment_for_current_term(user: User):
+    """Enroll the student into a course offered in the current semester."""
+    current_semester = SemesterFactory.create_current()
+    return EnrollmentFactory(student=user, course__semester=current_semester)
+
 
 def _get_or_create_student(username: str) -> User:
     """
@@ -46,7 +57,11 @@ def _get_or_create_student(username: str) -> User:
     """
     user = User.objects.filter(username=username).first()
     if user is None:
-        user = UserFactory(username=username)
+        user = StudentFactory(username=username)
+    else:
+        # Ensure the user has a student profile so permission checks succeed.
+        if not hasattr(user, "student_profile"):
+            StudentProfileFactory(user=user)
 
     user.set_password(PASSWORD)
     user.save(update_fields=["password"])
@@ -66,7 +81,7 @@ def student_user(django_db_setup, django_db_blocker):
 def student2_with_assignment(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
         user = _get_or_create_student("student2")
-        enrollment = EnrollmentFactory(student=user)
+        enrollment = _create_enrollment_for_current_term(user)
 
         assignment = AssignmentFactory(
             course=enrollment.course,
@@ -84,7 +99,7 @@ def student2_with_assignment(django_db_setup, django_db_blocker):
 def student3_with_assignment_and_sa(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
         user = _get_or_create_student("student3")
-        enrollment = EnrollmentFactory(student=user)
+        enrollment = _create_enrollment_for_current_term(user)
 
         assignment = AssignmentFactory(
             course=enrollment.course,
@@ -130,11 +145,10 @@ def _login_via_cookie(page, live_server, user: User):
 
     session = SessionStore()
     session["_auth_user_id"] = str(user.pk)
-    session["_auth_user_backend"] = "django.contrib.auth.backends.ModelBackend"
+    session["_auth_user_backend"] = settings.AUTHENTICATION_BACKENDS[0]
     session["_auth_user_hash"] = user.get_session_auth_hash()
     session.save()
 
-    from django.conf import settings
     page.context.add_cookies(
         [{
             "name": settings.SESSION_COOKIE_NAME,   # usually "sessionid"
@@ -168,6 +182,19 @@ def _select_course_contains(page, substring: str):
         )
 
     page.select_option('select[name="course"]', match["value"])
+
+
+def _show_comment_form(page):
+    """
+    The testing webpack loader does not inject real JS bundles, so toggle the form manually.
+    """
+    page.click("#add-comment")
+    page.wait_for_selector("#comment-form-wrapper", timeout=60_000, state="attached")
+    page.eval_on_selector(
+        "#comment-form-wrapper",
+        "(el) => { el.classList.remove('hidden'); el.classList.remove('d-none'); }",
+    )
+    page.wait_for_selector("#comment-form-wrapper", timeout=60_000, state="visible")
 
 
 def test_login_redirects_to_assignments(page, live_server, student_user):
@@ -209,8 +236,7 @@ def test_add_comment_from_assignment_detail(page, live_server, student3_with_ass
     page.click(f'text={assignment.title}')
     page.wait_for_url("**/learning/assignments/*", timeout=60_000)
 
-    page.click("#add-comment")
-    page.wait_for_selector("#comment-form-wrapper", timeout=60_000)
+    _show_comment_form(page)
 
     textarea = page.locator("#comment-form-wrapper textarea").first
     textarea.fill("Hello from Playwright UI test")
