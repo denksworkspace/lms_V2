@@ -76,6 +76,8 @@ pytest-pythonpath = "*"
 pytest-xdist = "*"
 testfixtures = "*"
 time-machine = "*"
+pytest-playwright = "<0.4"
+playwright = "<1.30"
 
 [build-system]
 requires = ["poetry-core"]

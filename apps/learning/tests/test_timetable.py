@@ -1,4 +1,7 @@
+from datetime import datetime, timezone
+
 import pytest
+import time_machine
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 
@@ -18,6 +21,37 @@ from users.tests.factories import (
 def flatten_events(calendar: WeekEventsCalendar):
     return [calendar_event for day in calendar.days()
             for calendar_event in day.events]
+
+
+def _exercise_student_timetable(client):
+    student_profile = StudentProfileFactory()
+    client.login(student_profile.user)
+    course = CourseFactory()
+    EnrollmentFactory.create(course=course, student_profile=student_profile,
+                             student=student_profile.user)
+    timetable_url = reverse('study:timetable')
+    response = client.get(timetable_url)
+    calendar = response.context_data['calendar']
+    assert isinstance(calendar, WeekEventsCalendar)
+    assert len(flatten_events(calendar)) == 0
+    today = now_local(settings.DEFAULT_TIMEZONE).date()
+    CourseClassFactory.create_batch(3, course=course, date=today)
+    response = client.get(timetable_url)
+    calendar = response.context_data['calendar']
+    assert len(flatten_events(calendar)) == 3
+    next_week_qstr = ("?year={0}&week={1}"
+                      .format(calendar.next_week.year,
+                              calendar.next_week.week))
+    assert next_week_qstr.encode() in response.content
+    next_week_url = timetable_url + next_week_qstr
+    response = client.get(next_week_url)
+    calendar = response.context_data['calendar']
+    assert len(flatten_events(calendar)) == 0
+    next_week_date = today + relativedelta(weeks=1)
+    CourseClassFactory.create_batch(2, course=course, date=next_week_date)
+    response = client.get(next_week_url)
+    calendar = response.context_data['calendar']
+    assert len(flatten_events(calendar)) == 2
 
 
 @pytest.mark.django_db
@@ -87,31 +121,10 @@ def test_student_timetable_view_security(client, lms_resolver):
 
 @pytest.mark.django_db
 def test_student_timetable(client):
-    student_profile = StudentProfileFactory()
-    client.login(student_profile.user)
-    co = CourseFactory()
-    e = EnrollmentFactory.create(course=co, student_profile=student_profile,
-                                 student=student_profile.user)
-    timetable_url = reverse('study:timetable')
-    response = client.get(timetable_url)
-    calendar = response.context_data['calendar']
-    assert isinstance(calendar, WeekEventsCalendar)
-    assert len(flatten_events(calendar)) == 0
-    today = now_local(settings.DEFAULT_TIMEZONE).date()
-    CourseClassFactory.create_batch(3, course=co, date=today)
-    response = client.get(timetable_url)
-    calendar = response.context_data['calendar']
-    assert len(flatten_events(calendar)) == 3
-    next_week_qstr = ("?year={0}&week={1}"
-                      .format(calendar.next_week.year,
-                              calendar.next_week.week))
-    assert next_week_qstr.encode() in response.content
-    next_week_url = timetable_url + next_week_qstr
-    response = client.get(next_week_url)
-    calendar = response.context_data['calendar']
-    assert len(flatten_events(calendar)) == 0
-    next_week_date = today + relativedelta(weeks=1)
-    CourseClassFactory.create_batch(2, course=co, date=next_week_date)
-    response = client.get(next_week_url)
-    calendar = response.context_data['calendar']
-    assert len(flatten_events(calendar)) == 2
+    _exercise_student_timetable(client)
+
+
+@time_machine.travel(datetime(2025, 12, 29, 10, 0, tzinfo=timezone.utc))
+@pytest.mark.django_db
+def test_student_timetable_iso_year_boundary(client):
+    _exercise_student_timetable(client)
