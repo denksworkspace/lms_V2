@@ -43,4 +43,9 @@ Activate the environment with `poetry shell` or use `poetry run` for commands.
 $ poetry run python manage.py migrate --settings=lms.settings.extended
 ```
 
+* (Optional) Create local demo accounts for quick logins:
+```bash
+ENV_FILE=.env poetry run python manage.py ensure_testaccounts
+```
+
 * Create `.env` file and place it under `lms/settings/` directory. The easiest way is to copy and rename `.env.example` which could be find in the target directory.

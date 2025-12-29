@@ -1,6 +1,9 @@
-//@media (min-width: 480px) {
-body.sign-in, body.reset-password, body.gray {
-  background: #f8f8f8;
+body.sign-in,
+body.reset-password,
+body.gray {
+  background: var(--csc-page-bg);
+  min-height: 100vh;
+  color: var(--csc-text-color);
 
 }
 
@@ -8,12 +11,25 @@ body.sign-in, body.reset-password, body.gray {
     width: 415px;
     margin: 40px auto;
     padding: 30px 43px;
+    background: #fff;
+    color: #1f1f23;
+    border-radius: 12px;
+    border: 1px solid rgba(15, 18, 40, 0.08);
+    box-shadow: 0 25px 70px rgba(15, 18, 40, 0.15);
+    position: relative;
+
   h4 {
     //text-transform: uppercase;
     font-weight: normal;
   }
 }
-//}
+
+[data-theme="dark"] body.sign-in .container-box,
+[data-theme="dark"] body.reset-password .container-box,
+[data-theme="dark"] body.gray .container-box {
+  background: #fff;
+  color: #1f1f23;
+}
 
 #sign-in, #reset-password {
   margin-top: 10px;
@@ -25,17 +41,19 @@ body.sign-in, body.reset-password, body.gray {
 
 
   }
-    input {
-      width: 100%;
-      border: 1px solid #e3e6e7;
-      border-radius: 4px;
-      padding: 11px 10px;
-      margin-bottom: 10px;
-      font-size: 14px;
-      box-shadow: none;
-      line-height: normal;
-      height: auto;
-    }
+  input {
+    width: 100%;
+    border: 1px solid #e3e6e7;
+    border-radius: 6px;
+    padding: 11px 10px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    box-shadow: none;
+    line-height: normal;
+    height: auto;
+    background: #fff;
+    color: #1f1f23;
+  }
 
   .error-message {
       font-size: 14px;
@@ -62,14 +80,34 @@ body.sign-in, body.reset-password, body.gray {
   }
 
   .btn.sign-up-in, .btn.btn-primary {
-      font-size: 13px;
-      margin-top: 15px;
+    font-size: 13px;
+    margin-top: 15px;
     border: 0 !important;
     line-height: 24px;
     text-transform: uppercase;
-    border-radius: 4px!important;
+    border-radius: 4px !important;
+    padding: 12px 18px;
+    background: #5d79ff;
+    color: #fff;
+    box-shadow: none;
+
+    &:hover,
+    &:focus-visible {
+      background: #3d4ace;
+      color: #fff;
+    }
   }
+
   .btn.btn-primary {
     margin-top: 0;
+  }
+
+  .forgot {
+    color: #3d4ace;
+
+    &:hover,
+    &:focus-visible {
+      color: #2c3aac;
+    }
   }
 }

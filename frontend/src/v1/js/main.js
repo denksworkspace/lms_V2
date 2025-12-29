@@ -10,6 +10,8 @@ import { csrfSafeMethod, getCSRFToken, getSections, showComponentError, loadReac
 import hljs from 'highlight.js'
 
 const CSC = window.__CSC__;
+const THEME_STORAGE_KEY = 'csc-theme';
+const NAV_BREAKPOINT = 992;
 
 $(document).ready(function () {
   configureCSRFAjax();
@@ -18,6 +20,8 @@ $(document).ready(function () {
   initUberEditors();
   initCollapsiblePanelGroups();
   setupFileInputs();
+  initThemeToggle();
+  initMobileNav();
 
   let sections = getSections();
   if (sections.includes('datetimepickers')) {
@@ -154,4 +158,120 @@ function setupFileInputs() {
       }
     })
   })
+}
+
+function initThemeToggle() {
+  const toggle = document.querySelector('[data-theme-toggle]');
+  if (!toggle) {
+    return;
+  }
+  const root = document.documentElement;
+  const label = toggle.querySelector('[data-theme-toggle-label]');
+  const labelDark = toggle.getAttribute('data-label-dark') || 'Dark mode';
+  const labelLight = toggle.getAttribute('data-label-light') || 'Light mode';
+
+  const applyTheme = (theme) => {
+    root.setAttribute('data-theme', theme);
+    toggle.setAttribute('aria-pressed', theme === 'dark');
+    if (label) {
+      label.textContent = theme === 'dark' ? labelDark : labelLight;
+    }
+  };
+
+  const storeTheme = (theme) => {
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch (err) {
+      // Ignore storage failures (e.g., Safari private mode)
+    }
+  };
+
+  const readStoredTheme = () => {
+    try {
+      return window.localStorage.getItem(THEME_STORAGE_KEY);
+    } catch (err) {
+      return null;
+    }
+  };
+
+  const getPreferredTheme = () => {
+    const stored = readStoredTheme();
+    if (stored === 'dark' || stored === 'light') {
+      return stored;
+    }
+    return 'light';
+  };
+
+  const setTheme = (theme) => {
+    applyTheme(theme);
+    storeTheme(theme);
+  };
+
+  setTheme(getPreferredTheme());
+
+  toggle.addEventListener('click', () => {
+    const nextTheme = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+  });
+
+  if (window.matchMedia) {
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (event) => {
+      if (readStoredTheme()) {
+        return;
+      }
+      applyTheme(event.matches ? 'dark' : 'light');
+    };
+    if (media.addEventListener) {
+      media.addEventListener('change', handleChange);
+    } else if (media.addListener) {
+      media.addListener(handleChange);
+    }
+  }
+}
+
+function initMobileNav() {
+  const navToggle = document.querySelector('[data-menu-toggle]');
+  const navPanel = document.querySelector('[data-menu-panel]');
+  const header = document.querySelector('.header');
+  if (!navToggle || !navPanel || !header) {
+    return;
+  }
+
+  const closeNav = () => {
+    header.classList.remove('header--nav-open');
+    navToggle.setAttribute('aria-expanded', 'false');
+  };
+
+  const openNav = () => {
+    header.classList.add('header--nav-open');
+    navToggle.setAttribute('aria-expanded', 'true');
+  };
+
+  navToggle.addEventListener('click', () => {
+    if (header.classList.contains('header--nav-open')) {
+      closeNav();
+    } else {
+      openNav();
+    }
+  });
+
+  document.addEventListener('keyup', (event) => {
+    if (event.key === 'Escape' && header.classList.contains('header--nav-open')) {
+      closeNav();
+      navToggle.focus();
+    }
+  });
+
+  navPanel.addEventListener('click', (event) => {
+    if (event.target.closest('a') && window.innerWidth < NAV_BREAKPOINT) {
+      closeNav();
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= NAV_BREAKPOINT) {
+      closeNav();
+    }
+  });
 }

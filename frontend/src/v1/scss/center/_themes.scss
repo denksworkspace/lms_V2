@@ -1,0 +1,107 @@
+:root {
+  --csc-page-bg: #f6f7fb;
+  --csc-surface-bg: #ffffff;
+  --csc-surface-alt-bg: #f1f2f6;
+  --csc-border-color: #e1e4ef;
+  --csc-text-color: #1f1f23;
+  --csc-muted-text-color: #7a7a7a;
+  --csc-link-color: #3d4ace;
+  --csc-link-hover-color: #2c3aac;
+  --csc-header-bg: #303033;
+  --csc-header-active-bg: #6b57ff;
+  --csc-header-contrast: #ffffff;
+  --csc-input-bg: #ffffff;
+  --csc-input-border: #ced4da;
+  --csc-card-shadow: 0 6px 20px rgba(15, 18, 40, 0.1);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --csc-page-bg: #0f111a;
+  --csc-surface-bg: #161b2c;
+  --csc-surface-alt-bg: #1f2538;
+  --csc-border-color: #2a3049;
+  --csc-text-color: #f0f2ff;
+  --csc-muted-text-color: #a0a9c3;
+  --csc-link-color: #8da8ff;
+  --csc-link-hover-color: #b8c6ff;
+  --csc-header-bg: #070a14;
+  --csc-header-active-bg: #1e2650;
+  --csc-header-contrast: #f6f7ff;
+  --csc-input-bg: #1c2233;
+  --csc-input-border: #3c4563;
+  --csc-card-shadow: 0 24px 45px rgba(0, 0, 0, 0.7);
+}
+
+body,
+html {
+  color: var(--csc-text-color);
+  background-color: var(--csc-page-bg);
+}
+
+body {
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+body .text-muted,
+body .muted,
+body .help-block {
+  color: var(--csc-muted-text-color);
+}
+
+.panel,
+.card,
+.dropdown-menu,
+.modal-content,
+.well,
+.list-group-item,
+.table,
+.table > thead > tr > th,
+.table > tbody > tr > td,
+.alert,
+.course-details__card,
+.course-details__section,
+.agenda-panel,
+.timeline-card {
+  background-color: var(--csc-surface-bg);
+  color: inherit;
+  border-color: var(--csc-border-color);
+}
+
+body[data-theme="dark"] .panel,
+body[data-theme="dark"] .card,
+body[data-theme="dark"] .modal-content,
+body[data-theme="dark"] .well {
+  box-shadow: var(--csc-card-shadow);
+}
+
+.form-control,
+.form-select,
+.bootstrap-select .dropdown-toggle,
+textarea,
+input[type="text"],
+input[type="email"],
+input[type="number"],
+input[type="password"],
+input[type="search"] {
+  background-color: var(--csc-input-bg);
+  color: var(--csc-text-color);
+  border-color: var(--csc-input-border);
+}
+
+.menu.lvl2,
+.nav-tabs {
+  background-color: var(--csc-surface-alt-bg);
+  border-color: var(--csc-border-color);
+}
+
+.dropdown-menu > li > a,
+.dropdown-menu > .dropdown-header {
+  color: var(--csc-text-color);
+}
+
+.footer {
+  background-color: var(--csc-surface-alt-bg);
+  color: var(--csc-muted-text-color);
+  border-top-color: var(--csc-border-color);
+}

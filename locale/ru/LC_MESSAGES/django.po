@@ -3591,6 +3591,22 @@ msgstr "Итоговая оценка"
 msgid "Profile"
 msgstr "Профиль"
 
+#: lms/jinja2/lms/layouts/_top_menu.html:47 lms/templates/_top_menu.html:46
+msgid "Primary navigation"
+msgstr "Основные разделы"
+
+#: lms/jinja2/lms/layouts/_top_menu.html:70 lms/templates/_top_menu.html:69
+msgid "Dark mode"
+msgstr "Темная тема"
+
+#: lms/jinja2/lms/layouts/_top_menu.html:70 lms/templates/_top_menu.html:69
+msgid "Light mode"
+msgstr "Светлая тема"
+
+#: lms/jinja2/lms/layouts/_top_menu.html:73 lms/templates/_top_menu.html:72
+msgid "Toggle navigation"
+msgstr "Меню"
+
 #: lms/jinja2/lms/layouts/_top_menu.html:40 lms/templates/_top_menu.html:43
 msgid "Logout"
 msgstr "Выйти"

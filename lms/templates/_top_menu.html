@@ -8,46 +8,58 @@
 {% else %}{% if request.user.is_authenticated and request.path|startswith:"/courses/" %}{% csc_menu "menu_private" as menu %}{% else %}{% csc_menu "menu_public" as menu %}{% endif %}{% endif %}
 {% load user_thumbnail from user_thumbnail %}
 
-<div class="header">
+<div class="header" data-menu-root>
 <div class="menu lvl1">
     <div class="container">
-        <div class="menu-left">
-            <div class="logo-cell">
-                <a class="logo-container" href="{% url 'index' subdomain=None %}"><img src="{% static LOGO_PATH %}" alt="{{ request.site.name }}"></a>
-            </div>
-            <ul{% if menu|length > 8 %} class="__narrow"{% endif %}>
-                {% for menu_item in menu %}
-                    <li {% if menu_item.selected %}class="active"{% endif %}>
-                        <a {% if menu_item.is_external %}target="_blank"{% endif %} href="{{ menu_item.url }}">{{ menu_item.title }}{% if menu_item.children %} <i class="fa fa-angle-down"></i>{% endif %}</a>
-                    </li>
-                {% endfor %}
-            </ul>
+        <div class="logo-cell">
+            <a class="logo-container" href="{% url 'index' subdomain=None %}"><img src="{% static LOGO_PATH %}" alt="{{ request.site.name }}"></a>
         </div>
-        <div class="menu-right" id="login" data-user-id="{{ user.pk }}">
-            {% if user.is_authenticated %}
-                <div class="dropdown">
-                  <a href="#" id="user-menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    {% user_thumbnail user user.ThumbnailSize.SQUARE_SMALL use_stab=True stub_official=False as im %}
-                        <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}">
-                    {% enduser_thumbnail %}
-                    <span class="caret"></span>
-                  </a>
-                  <ul class="dropdown-menu pull-right" aria-labelledby="user-menu">
-                      <li class="dropdown-header">{{ user.get_short_name }}</li>
-                      <li><a href="{{ user.get_absolute_url }}">{% trans "Profile" %}</a></li>
-                      {% if user.is_staff %}
-                          <li><a href="{% url 'staff:student_search' LMS_SUBDOMAIN %}">Supervision</a></li>
-                          <li><a href="{% url 'admin:index' %}" target="_blank">Dashboard</a></li>
-                      {% endif %}
-                      <li><a href="{% url 'auth:logout' %}">{% trans "Logout" %}</a></li>
-                  </ul>
-                </div>
-                {% if request.subdomain != LMS_SUBDOMAIN %}
-                    <a href="{% url 'index' LMS_SUBDOMAIN %}" class="members-area-link">My profile</a>
+        <div class="header__nav" id="primary-nav" data-menu-panel>
+            <nav class="header__primary" aria-label="{% trans 'Primary navigation' %}">
+                <ul class="nav-primary{% if menu|length > 8 %} __narrow{% endif %}">
+                    {% for menu_item in menu %}
+                        <li {% if menu_item.selected %}class="active"{% endif %}>
+                            <a {% if menu_item.is_external %}target="_blank"{% endif %} href="{{ menu_item.url }}">{{ menu_item.title }}{% if menu_item.children %} <i class="fa fa-angle-down"></i>{% endif %}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+            <div class="menu-right" id="login" data-user-id="{{ user.pk }}">
+                {% if user.is_authenticated %}
+                    <div class="dropdown">
+                      <a href="#" id="user-menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        {% user_thumbnail user user.ThumbnailSize.SQUARE_SMALL use_stab=True stub_official=False as im %}
+                            <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}">
+                        {% enduser_thumbnail %}
+                        <span class="caret"></span>
+                      </a>
+                      <ul class="dropdown-menu pull-right" aria-labelledby="user-menu">
+                          <li class="dropdown-header">{{ user.get_short_name }}</li>
+                          <li><a href="{{ user.get_absolute_url }}">{% trans "Profile" %}</a></li>
+                          {% if user.is_staff %}
+                              <li><a href="{% url 'staff:student_search' LMS_SUBDOMAIN %}">Supervision</a></li>
+                              <li><a href="{% url 'admin:index' %}" target="_blank">Dashboard</a></li>
+                          {% endif %}
+                          <li><a href="{% url 'auth:logout' %}">{% trans "Logout" %}</a></li>
+                      </ul>
+                    </div>
+                    {% if request.subdomain != LMS_SUBDOMAIN %}
+                        <a href="{% url 'index' LMS_SUBDOMAIN %}" class="members-area-link">My profile</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'auth:login' %}{% if not request.path|startswith:"/login" %}?next={{ request.get_full_path|urlencode}}{% endif %}">{% trans "Login" %}</a>
                 {% endif %}
-            {% else %}
-                <a href="{% url 'auth:login' %}{% if not request.path|startswith:"/login" %}?next={{ request.get_full_path|urlencode}}{% endif %}">{% trans "Login" %}</a>
-            {% endif %}
+            </div>
+        </div>
+        <div class="header__actions">
+            <button class="header__theme-toggle" type="button" data-theme-toggle aria-pressed="false" data-label-dark="{% trans 'Dark mode' %}" data-label-light="{% trans 'Light mode' %}">
+                <i class="fa fa-moon" aria-hidden="true"></i>
+                <span class="header__theme-toggle-text" data-theme-toggle-label>{% trans 'Dark mode' %}</span>
+            </button>
+            <button class="header__toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-nav">
+                <span class="visually-hidden">{% trans "Toggle navigation" %}</span>
+                <i class="fa fa-bars" aria-hidden="true"></i>
+            </button>
         </div>
     </div>
 </div>

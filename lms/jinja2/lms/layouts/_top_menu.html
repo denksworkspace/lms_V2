@@ -5,46 +5,58 @@
     {% set menu = [] %}
 {% endif %}
 
-<div class="header">
+<div class="header" data-menu-root>
 <div class="menu lvl1">
     <div class="container">
-        <div class="menu-left">
-            <div class="logo-cell">
-                <a class="logo-container" href="{{ url('index', subdomain=None) }}"><img src="{{ static(LOGO_PATH) }}" alt="{{ request.site.name }}"></a>
-            </div>
-            <ul{% if menu|length > 8 %} class="__narrow"{% endif %}>
-                {% for menu_item in menu %}
-                    <li {% if menu_item.selected %}class="active"{% endif %}>
-                        <a {% if menu_item.is_external %}target="_blank"{% endif %} href="{{ menu_item.url }}">{{ menu_item.title }}{% if menu_item.children %} <i class="fa fa-angle-down"></i>{% endif %}</a>
-                    </li>
-                {% endfor %}
-            </ul>
+        <div class="logo-cell">
+            <a class="logo-container" href="{{ url('index', subdomain=None) }}"><img src="{{ static(LOGO_PATH) }}" alt="{{ request.site.name }}"></a>
         </div>
-        <div class="menu-right" id="login" data-user-id="{{ user.pk|default("") }}">
-            {% if user.is_authenticated %}
-                <div class="dropdown">
-                  <a href="#" id="user-menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      {%- with im = user.get_thumbnail("60x60", use_stub=True) -%}
-                          <img src="{{ im.url }}" width="32" height="32" alt="{{ user.get_full_name() }}">
-                      {%- endwith %}
-                      <span class="caret"></span>
-                  </a>
-                  <ul class="dropdown-menu pull-right" aria-labelledby="user-menu">
-                      <li class="dropdown-header">{{ user.get_short_name() }}</li>
-                      <li><a href="{{ user.get_absolute_url() }}">{% trans %}Profile{% endtrans %}</a></li>
-                      {% if user.is_staff %}
-                          <li><a href="{{ url('staff:student_search', subdomain=LMS_SUBDOMAIN) }}">Supervision</a></li>
-                          <li><a href="{{ url('admin:index') }}" target="_blank">Dashboard</a></li>
-                      {% endif %}
-                      <li><a href="{{ url('auth:logout') }}">{% trans %}Logout{% endtrans %}</a></li>
-                  </ul>
-                </div>
-                {% if request.subdomain != LMS_SUBDOMAIN %}
-                    <a href="{{ url('index', subdomain=LMS_SUBDOMAIN) }}" class="members-area-link">Profile</a>
+        <div class="header__nav" id="primary-nav" data-menu-panel>
+            <nav class="header__primary" aria-label="{{ _('Primary navigation') }}">
+                <ul class="nav-primary{% if menu|length > 8 %} __narrow{% endif %}">
+                    {% for menu_item in menu %}
+                        <li {% if menu_item.selected %}class="active"{% endif %}>
+                            <a {% if menu_item.is_external %}target="_blank"{% endif %} href="{{ menu_item.url }}">{{ menu_item.title }}{% if menu_item.children %} <i class="fa fa-angle-down"></i>{% endif %}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+            <div class="menu-right" id="login" data-user-id="{{ user.pk|default("") }}">
+                {% if user.is_authenticated %}
+                    <div class="dropdown">
+                      <a href="#" id="user-menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          {%- with im = user.get_thumbnail("60x60", use_stub=True) -%}
+                              <img src="{{ im.url }}" width="32" height="32" alt="{{ user.get_full_name() }}">
+                          {%- endwith %}
+                          <span class="caret"></span>
+                      </a>
+                      <ul class="dropdown-menu pull-right" aria-labelledby="user-menu">
+                          <li class="dropdown-header">{{ user.get_short_name() }}</li>
+                          <li><a href="{{ user.get_absolute_url() }}">{% trans %}Profile{% endtrans %}</a></li>
+                          {% if user.is_staff %}
+                              <li><a href="{{ url('staff:student_search', subdomain=LMS_SUBDOMAIN) }}">Supervision</a></li>
+                              <li><a href="{{ url('admin:index') }}" target="_blank">Dashboard</a></li>
+                          {% endif %}
+                          <li><a href="{{ url('auth:logout') }}">{% trans %}Logout{% endtrans %}</a></li>
+                      </ul>
+                    </div>
+                    {% if request.subdomain != LMS_SUBDOMAIN %}
+                        <a href="{{ url('index', subdomain=LMS_SUBDOMAIN) }}" class="members-area-link">Profile</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url('auth:login') }}{% if not request.path.startswith("/login") %}?next={{ request.get_full_path()|urlencode}}{% endif %}">{% trans %}Login{% endtrans %}</a>
                 {% endif %}
-            {% else %}
-                <a href="{{ url('auth:login') }}{% if not request.path.startswith("/login") %}?next={{ request.get_full_path()|urlencode}}{% endif %}">{% trans %}Login{% endtrans %}</a>
-            {% endif %}
+            </div>
+        </div>
+        <div class="header__actions">
+            <button class="header__theme-toggle" type="button" data-theme-toggle aria-pressed="false" data-label-dark="{{ _('Dark mode') }}" data-label-light="{{ _('Light mode') }}">
+                <i class="fa fa-moon" aria-hidden="true"></i>
+                <span class="header__theme-toggle-text" data-theme-toggle-label>{{ _('Dark mode') }}</span>
+            </button>
+            <button class="header__toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="primary-nav">
+                <span class="visually-hidden">{% trans %}Toggle navigation{% endtrans %}</span>
+                <i class="fa fa-bars" aria-hidden="true"></i>
+            </button>
         </div>
     </div>
 </div>
