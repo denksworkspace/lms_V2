@@ -12,6 +12,7 @@
 - `docker run -d -p 127.0.0.1:5432:5432 --name lms-postgres … postgres` and analogous Redis command — start required services.
 - `ENV_FILE=.env poetry run python manage.py migrate` and `manage.py collectstatic` — prepare database and static files.
 - `npm install --prefix frontend` then `npm run local:1 --prefix frontend` (or `npm run build:css`) — build JS/CSS bundles.
+- `npm run dev:1 --prefix frontend` — start the webpack dev server with hot reload; run Django with `WEBPACK_ENVIRONMENT=devserver` so it consumes the dev bundles.
 - `ENV_FILE=.env poetry run python manage.py runserver localhost:8001` — launch the backend against local assets.
 
 ## Coding Style & Naming Conventions

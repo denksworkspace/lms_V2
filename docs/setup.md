@@ -49,3 +49,19 @@ ENV_FILE=.env poetry run python manage.py ensure_testaccounts
 ```
 
 * Create `.env` file and place it under `lms/settings/` directory. The easiest way is to copy and rename `.env.example` which could be find in the target directory.
+
+### Frontend development server
+
+The legacy `npm run local:1` command still produces hashed bundles under `frontend/assets/v1/dist/local` for `collectstatic`, but day-to-day React work should use the new dev server for hot reloads:
+
+```
+npm run dev:1 --prefix frontend
+```
+
+The dev server exposes assets on `http://localhost:8090`. While it is running, start Django with `WEBPACK_ENVIRONMENT=devserver` so `django-webpack-loader` reads the correct stats file:
+
+```
+WEBPACK_ENVIRONMENT=devserver ENV_FILE=.env poetry run python manage.py runserver localhost:8001
+```
+
+Stop the dev server (or switch the environment back to `local`) before running release builds or `collectstatic`.

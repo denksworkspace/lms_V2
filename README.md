@@ -16,6 +16,22 @@ In order to build the frontend, you need to
 
 It is expected that `frontend/assets/v1/dist` folder will contain the output artifacts.
 
+#### React/Vue dev server
+
+For day-to-day React work you no longer need to rebuild everything after each change. Start the webpack dev server:
+
+```
+npm run dev:1 --prefix frontend
+```
+
+The dev server runs on `http://localhost:8090` by default (override with `WEBPACK_DEVSERVER_PORT`). In another shell run Django with the matching bundle environment so `django-webpack-loader` reads the hot bundles:
+
+```
+WEBPACK_ENVIRONMENT=devserver ENV_FILE=.env poetry run python manage.py runserver localhost:8001
+```
+
+When you stop the dev server, switch `WEBPACK_ENVIRONMENT` back to `local` (or omit it) before running `collectstatic` or shipping production bundles.
+
 ### Create Python environment
 The LMS uses Python 3.10, and there are dependencies that won't work with the newer Python versions out of the box. 
 If your local system Python version is different, you can install Python 3.10 using [pyenv](https://realpython.com/intro-to-pyenv/) tool. 

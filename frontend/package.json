@@ -4,6 +4,7 @@
   "description": "Webpack",
   "scripts": {
     "build:css": "webpack --config webpack/styles.config.js",
+    "dev:1": "WEBPACK_ENVIRONMENT=devserver NODE_ENV=development webpack serve --config webpack/v1.config.js --progress",
     "local:1": "LOCAL_BUILD=1 DEBUG=1 npm run prod:1 -- --progress",
     "prod:1": "NODE_ENV=production npm run build:css && NODE_ENV=production webpack --config webpack/v1.config.js"
   },
@@ -92,6 +93,7 @@
     "webpack": "^5.69.1",
     "webpack-bundle-tracker": "^3.1.0",
     "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.2",
     "webpack-merge": "^5.8.0"
   },
   "license": "ISC",

@@ -1,6 +1,7 @@
 import datetime
 from typing import Any, Optional
 
+from django.conf import settings
 from django.core.exceptions import ValidationError, PermissionDenied
 from django.db import transaction
 from django.db.models import Count, F, Func, OuterRef, Q, Subquery, TextField, Value
@@ -34,9 +35,14 @@ class CourseCapacityFull(EnrollmentError):
 
 class EnrollmentService:
     @staticmethod
-    def _format_reason_record(reason_text: str, course: Course) -> str:
-        """Append date to the enter/leave reason text"""
-        timezone = course.get_timezone()
+    def _format_reason_record(
+        reason_text: str,
+        course: Course,
+        *,
+        tz=None,
+    ) -> str:
+        """Append date to the enter/leave reason text."""
+        timezone = tz or course.get_timezone() or settings.DEFAULT_TIMEZONE
         today = now_local(timezone).strftime(DATE_FORMAT_RU)
         return f'{today}\n{reason_text}\n\n'
 
@@ -54,7 +60,11 @@ class EnrollmentService:
             raise ValueError(f"Student group {student_group.pk} is not "
                              f"associated with the course {course.pk}")
         if reason_entry:
-            new_record = cls._format_reason_record(reason_entry, course)
+            new_record = cls._format_reason_record(
+                reason_entry,
+                course,
+                tz=getattr(student_profile.user, "time_zone", None),
+            )
             reason_entry = Concat(Value(new_record),
                                   F('reason_entry'),
                                   output_field=TextField())
@@ -136,8 +146,11 @@ class EnrollmentService:
         update_fields = ['is_deleted']
         enrollment.is_deleted = True
         if reason_leave:
-            new_record = cls._format_reason_record(reason_leave,
-                                                   enrollment.course)
+            new_record = cls._format_reason_record(
+                reason_leave,
+                enrollment.course,
+                tz=getattr(enrollment.student, "time_zone", None),
+            )
             enrollment.reason_leave = Concat(
                 Value(new_record),
                 F('reason_leave'),

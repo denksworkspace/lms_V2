@@ -37,7 +37,11 @@ def test_service_enroll(settings, program_cub001, program_run_cub):
     student_group = StudentGroupFactory(course=course)
     enrollment = EnrollmentService.enroll(student_profile, course,
                                           student_group=student_group, reason_entry='test enrollment')
-    reason_entry = EnrollmentService._format_reason_record('test enrollment', course)
+    reason_entry = EnrollmentService._format_reason_record(
+        'test enrollment',
+        course,
+        tz=student_profile.user.time_zone,
+    )
     assert enrollment.reason_entry == reason_entry
     assert not enrollment.is_deleted
     assert enrollment.student_group_id == student_group.pk
